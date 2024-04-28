@@ -1,0 +1,27 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: connect with ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/ubuntu/test
+            git pull origin main 
+            docker stop container
+            docker rm container
+            docker rmi bangjeff:latest
+            docker build -t bangjeff:latest .
+            docker run -d -p 8000:8000 --name container bangjeff:latest
